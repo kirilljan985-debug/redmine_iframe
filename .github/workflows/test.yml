@@ -12,21 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         redmine_branch: ['7.0-stable', 'master']
-        with_additionals: [false]
-        include:
-          # отдельный джоб: additionals установлен — проверяется блок дашборда
-          - redmine_branch: '7.0-stable'
-            with_additionals: true
     steps:
       - name: Clone Redmine ${{ matrix.redmine_branch }}
         uses: actions/checkout@v4
         with:
           repository: redmine/redmine
           ref: ${{ matrix.redmine_branch }}
-
-      - name: Install additionals (job checks dashboard block)
-        if: matrix.with_additionals
-        run: git clone --depth 1 https://github.com/alphanodes/additionals plugins/additionals
 
       - name: Install plugin as plugins/redmine_web_window
         uses: actions/checkout@v4
@@ -76,7 +67,92 @@ jobs:
             tail -n 30 log/test.log 2>/dev/null || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # последние строки вывода упавшего шага — в аннотации (читаются через API)
+          src="ci_output.txt"
+          [ -s ci_output.txt ] || src="migrate_output.txt"
+          tail -n 14 "$src" 2>/dev/null | while IFS= read -r line; do
+            echo "::error::${line:0:300}"
+          done
+
+  # Блок дашборда проверяется только с additionals; свежий additionals
+  # работает только на MySQL/PostgreSQL, поэтому здесь PostgreSQL-сервис.
+  additionals_block:
+    name: Redmine 7.0-stable + additionals (блок дашборда)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: redmine_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Clone Redmine 7.0-stable
+        uses: actions/checkout@v4
+        with:
+          repository: redmine/redmine
+          ref: '7.0-stable'
+
+      - name: Install plugin as plugins/redmine_web_window
+        uses: actions/checkout@v4
+        with:
+          path: plugins/redmine_web_window
+
+      - name: Install additionals
+        run: git clone --depth 1 https://github.com/alphanodes/additionals plugins/additionals
+
+      - name: Setup Ruby 3.3
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install libpq
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev
+
+      - name: Configure postgres test database
+        run: |
+          cat > config/database.yml <<'EOF'
+          test:
+            adapter: postgresql
+            database: redmine_test
+            host: localhost
+            username: postgres
+            password: postgres
+          EOF
+
+      - name: Bundle install
+        run: bundle install --jobs 4 --without development
+
+      - name: Migrate databases (core + plugins)
+        run: |
+          set -o pipefail
+          bundle exec rake db:create db:migrate RAILS_ENV=test 2>&1 | tee migrate_output.txt
+          bundle exec rake redmine:plugins:migrate RAILS_ENV=test 2>&1 | tee -a migrate_output.txt
+
+      - name: Static checks (python)
+        run: python3 check_redmine_plugin.py
+        working-directory: plugins/redmine_web_window
+
+      - name: Plugin tests
+        run: |
+          set -o pipefail
+          bundle exec rake redmine:plugins:test NAME=redmine_web_window RAILS_ENV=test 2>&1 | tee ci_output.txt
+
+      - name: Report failure details
+        if: failure()
+        run: |
+          {
+            echo "### Plugin tests — хвост вывода"
+            echo '```'
+            tail -n 80 ci_output.txt 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
           src="ci_output.txt"
           [ -s ci_output.txt ] || src="migrate_output.txt"
           tail -n 14 "$src" 2>/dev/null | while IFS= read -r line; do
