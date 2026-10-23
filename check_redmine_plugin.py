@@ -24,11 +24,12 @@ if (BASE / 'init.rb').is_file():
 else:
     PLUGIN = BASE / 'redmine_web_window'
 
-# Разрешены LAN-примеры, плейсхолдеры, тестовый example.com и ссылка
-# на собственный репозиторий.
+# Разрешены LAN-примеры, плейсхолдеры, тестовый example.com и ссылки на
+# собственный репозиторий и источник additionals (только CI-шаг установки).
 ALLOWED_URL_PREFIXES = ('http://192.168.', 'http://localhost', 'http://<',
                         'http://адрес', 'http://example.com',
-                        'https://github.com/kirilljan985-debug/')
+                        'https://github.com/kirilljan985-debug/',
+                        'https://github.com/alphanodes/')
 
 EXPECTED_FILES = (
     'init.rb',
