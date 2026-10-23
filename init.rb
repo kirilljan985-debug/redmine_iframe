@@ -30,6 +30,17 @@ if Redmine::Plugin.installed?(:additionals)
       Rails.logger ? Rails.logger.warn(msg) : warn(msg)
     end
   else
+    # легаси: каталог класса блока исключаем из автозагрузки (в 4.0–4.6
+    # системы блоков нет, а eager-загрузка production честно грузит файлы
+    # плагина; класс сам защищён return-выходом, это убирает лишние
+    # автозагрузочные записи)
+    begin
+      if defined?(Rails.autoloaders) && Rails.autoloaders.respond_to?(:main)
+        Rails.autoloaders.main.ignore(File.expand_path('lib/dashboard_blocks', __dir__))
+      end
+    rescue StandardError
+      # необязательная оптимизация, не влияет на безопасность старта
+    end
     require_relative 'lib/redmine_web_window/legacy_dashboard_block_patch'
     Rails.application.config.after_initialize do
       begin

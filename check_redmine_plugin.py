@@ -82,6 +82,8 @@ class TestRedminePlugin(unittest.TestCase):
         self.assertIn('setting :url', block)
         self.assertIn('required: true', block)
         self.assertIn('default: 485', block)
+        # защита старта: файл не должен падать при загрузке без системы блоков
+        self.assertIn('return unless defined?(DashboardBlocks::Base)', block)
 
     def test_macro_validates_url(self):
         init = self.read('init.rb')

@@ -26,6 +26,14 @@ class WebWindowBlockTest < ActiveSupport::TestCase
       assert_equal 'dashboards/blocks/web_window', defs['web_window'][:partial]
       assert_equal 'dashboards/blocks/web_window_settings', defs['web_window'][:settings_partial]
       assert_equal 10, defs['web_window'][:max_occurs]
+
+      # регрессия рестарт-лупа: файл класса блока обязан безопасно
+      # загружаться без системы блоков (eager-загрузка production)
+      assert_nil defined?(DashboardBlocks::WebWindowBlock)
+      assert_nothing_raised do
+        load File.expand_path('../../../lib/dashboard_blocks/web_window_block.rb', __FILE__)
+      end
+      assert_nil defined?(DashboardBlocks::WebWindowBlock)
     end
   end
 
