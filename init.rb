@@ -14,10 +14,21 @@
 #   {{web_window(http://192.168.1.50:8000, height=600)}}
 
 # Блок дашбордов: подключаем только при установленном additionals
-# (загружается раньше нас по алфавиту, поэтому installed? здесь уже видит его).
-if defined?(RedminePluginKit::Loader) && Redmine::Plugin.installed?(:additionals)
-  loader = RedminePluginKit::Loader.new plugin_id: 'redmine_web_window'
-  loader.extends %w[dashboard_blocks]
+# (загружается раньше нас по алфавиту, поэтому installed? здесь уже видит его)
+# и только если его система блоков реально доступна в этой версии.
+# Любая несовместимость деградирует в «только макрос», а не роняет Redmine
+# при старте.
+if defined?(RedminePluginKit::Loader) &&
+   defined?(DashboardBlocks::Base) &&
+   defined?(DashboardContent) &&
+   Redmine::Plugin.installed?(:additionals)
+  begin
+    loader = RedminePluginKit::Loader.new plugin_id: 'redmine_web_window'
+    loader.extends %w[dashboard_blocks]
+  rescue StandardError => e
+    msg = "web_window: блок дашбордов не подключён, работает только макрос (#{e.class}: #{e.message})"
+    Rails.logger ? Rails.logger.warn(msg) : warn(msg)
+  end
 end
 
 Redmine::Plugin.register :redmine_web_window do

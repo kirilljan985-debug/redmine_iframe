@@ -64,6 +64,10 @@ class TestRedminePlugin(unittest.TestCase):
         init = self.read('init.rb')
         # блок подключается только при установленном additionals
         self.assertIn('Redmine::Plugin.installed?(:additionals)', init)
+        # и не может уронить Redmine при старте: проверка возможностей
+        # системы блоков + rescue с деградацией в «только макрос»
+        self.assertIn('defined?(DashboardBlocks::Base)', init)
+        self.assertIn('rescue StandardError', init)
         self.assertIn("loader.extends %w[dashboard_blocks]", init)
         block = self.read('lib/dashboard_blocks/web_window_block.rb')
         self.assertIn("block_id 'web_window'", block)
