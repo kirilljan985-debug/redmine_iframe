@@ -25,13 +25,13 @@ class WebWindowMacroTest < ActiveSupport::TestCase
   end
 
   test 'renders iframe with custom height' do
-    out = exec_macro('http://192.168.1.10:8000', 'height=600')
+    out = exec_macro('http://192.168.1.10:8000, height=600')
     assert_include 'height:600px', out
   end
 
   test 'clamps height into allowed range' do
-    assert_include 'height:485px', exec_macro('http://example.com', 'height=10')
-    assert_include 'height:3000px', exec_macro('http://example.com', 'height=9999')
+    assert_include 'height:485px', exec_macro('http://example.com, height=10')
+    assert_include 'height:3000px', exec_macro('http://example.com, height=9999')
   end
 
   test 'rejects non http(s) urls' do
@@ -41,7 +41,7 @@ class WebWindowMacroTest < ActiveSupport::TestCase
   end
 
   test 'shows hint instead of iframe for empty url' do
-    out = exec_macro
+    out = exec_macro('')
     assert_not_include '<iframe', out
   end
 
@@ -54,10 +54,10 @@ class WebWindowMacroTest < ActiveSupport::TestCase
   private
 
   # Объект, включающий модуль Definitions, — как у форматтера Redmine.
-  def exec_macro(*args)
+  def exec_macro(args_string)
     holder = Class.new do
       include Redmine::WikiFormatting::Macros::Definitions
     end.new
-    holder.exec_macro('web_window', nil, args, nil)
+    holder.exec_macro('web_window', nil, args_string, nil)
   end
 end
