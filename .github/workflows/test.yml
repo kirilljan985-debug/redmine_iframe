@@ -12,12 +12,21 @@ jobs:
       fail-fast: false
       matrix:
         redmine_branch: ['7.0-stable', 'master']
+        with_additionals: [false]
+        include:
+          # отдельный джоб: additionals установлен — проверяется блок дашборда
+          - redmine_branch: '7.0-stable'
+            with_additionals: true
     steps:
       - name: Clone Redmine ${{ matrix.redmine_branch }}
         uses: actions/checkout@v4
         with:
           repository: redmine/redmine
           ref: ${{ matrix.redmine_branch }}
+
+      - name: Install additionals (job checks dashboard block)
+        if: matrix.with_additionals
+        run: git clone --depth 1 https://github.com/alphanodes/additionals plugins/additionals
 
       - name: Install plugin as plugins/redmine_web_window
         uses: actions/checkout@v4

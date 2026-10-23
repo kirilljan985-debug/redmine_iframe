@@ -1,0 +1,4 @@
+ru:
+  label_web_window: 'Веб-страница (окно)'
+  label_web_window_height: 'Высота окна (px)'
+  label_web_window_no_url: 'Ссылка ещё не задана: откройте настройки блока и впишите адрес страницы'

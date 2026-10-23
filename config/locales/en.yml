@@ -1,0 +1,4 @@
+en:
+  label_web_window: 'Web page (window)'
+  label_web_window_height: 'Window height (px)'
+  label_web_window_no_url: 'URL is not set yet: open the block settings and enter the page address'

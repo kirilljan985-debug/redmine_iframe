@@ -1,0 +1,11 @@
+<% if settings[:title].present? %>
+  <h3><%= settings[:title] %></h3>
+<% end %>
+<% if dashboard_block.url.present? %>
+  <iframe src="<%= dashboard_block.url %>"
+          title="<%= settings[:title].presence || 'web window' %>"
+          loading="lazy"
+          style="width:100%;height:<%= dashboard_block.height %>px;border:1px solid #c0c0c0;border-radius:3px;background:#fff"></iframe>
+<% else %>
+  <p class="hint"><%= l(:label_web_window_no_url) %></p>
+<% end %>

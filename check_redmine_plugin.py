@@ -33,6 +33,14 @@ ALLOWED_URL_PREFIXES = ('http://192.168.', 'http://localhost', 'http://<',
 EXPECTED_FILES = (
     'init.rb',
     'README.md',
+    'lib/dashboard_blocks/web_window_block.rb',
+    'app/views/dashboards/blocks/_web_window.html.erb',
+    'config/locales/en.yml',
+    'config/locales/ru.yml',
+    'test/test_helper.rb',
+    'test/unit/web_window_macro_test.rb',
+    'test/unit/web_window_block_test.rb',
+    '.github/workflows/test.yml',
 )
 
 
@@ -50,6 +58,17 @@ class TestRedminePlugin(unittest.TestCase):
         self.assertIn('Redmine::Plugin.register :redmine_web_window', init)
         self.assertIn('Redmine::WikiFormatting::Macros.register', init)
         self.assertIn("macro :web_window", init)
+
+    def test_dashboard_block_is_gated_on_additionals(self):
+        init = self.read('init.rb')
+        # блок подключается только при установленном additionals
+        self.assertIn('Redmine::Plugin.installed?(:additionals)', init)
+        self.assertIn("loader.extends %w[dashboard_blocks]", init)
+        block = self.read('lib/dashboard_blocks/web_window_block.rb')
+        self.assertIn("block_id 'web_window'", block)
+        self.assertIn('setting :url', block)
+        self.assertIn('required: true', block)
+        self.assertIn('default: 485', block)
 
     def test_macro_validates_url(self):
         init = self.read('init.rb')

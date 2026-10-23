@@ -1,22 +1,30 @@
 # encoding: utf-8
-# Плагин «Веб-окно» для Redmine: wiki-макрос {{web_window}} — окно (iframe)
-# с любой веб-страницей. Окно можно вставить всюду, где Redmine рендерит
-# вики-текст: в блок «Текст» дашбордов additionals (главная страница,
-# обзор проекта), в вики-страницы, в текст приветствия.
+# Плагин «Веб-окно» для Redmine: окно (iframe) с любой веб-страницей.
 #
-# Использование:
+# Два способа:
+# 1) wiki-макрос {{web_window(url, height=N)}} — штатный механизм макросов
+#    Redmine, работает без зависимостей: в блоке «Текст» дашбордов
+#    additionals, в вики-страницах, в тексте приветствия;
+# 2) блок «Веб-страница (окно)» в дашбордах additionals («Добавить блок»,
+#    в настройках — только ссылка) — подключается, если additionals
+#    установлен и содержит систему блоков DashboardBlocks.
+#
+# Использование макроса:
 #   {{web_window(http://192.168.1.50:8000)}}
-#   {{web_window(http://192.168.1.50:8000, height=600)}
-#
-# Реализовано через штатный механизм макросов Redmine
-# (Redmine::WikiFormatting::Macros) — без привязки к внутреннему API
-# какой-либо версии additionals.
+#   {{web_window(http://192.168.1.50:8000, height=600)}}
+
+# Блок дашбордов: подключаем только при установленном additionals
+# (загружается раньше нас по алфавиту, поэтому installed? здесь уже видит его).
+if defined?(RedminePluginKit::Loader) && Redmine::Plugin.installed?(:additionals)
+  loader = RedminePluginKit::Loader.new plugin_id: 'redmine_web_window'
+  loader.extends %w[dashboard_blocks]
+end
 
 Redmine::Plugin.register :redmine_web_window do
   name 'Веб-окно (встраиваемая страница)'
   author 'Отдел инженерии'
-  description 'Макрос {{web_window(url, height=N)}}: окно-iframe с любой веб-страницей. Вставляется в блок «Текст» дашбордов additionals, вики-страницы и текст приветствия'
-  version '1.0.0'
+  description 'Окно-iframe с любой веб-страницей: блок «Веб-страница (окно)» в дашбордах additionals (в настройках — только ссылка) и макрос {{web_window(url, height=N)}} для блока «Текст», вики и текста приветствия'
+  version '1.1.0'
 end
 
 Redmine::WikiFormatting::Macros.register do
