@@ -30,7 +30,7 @@ class WebWindowBlockTest < ActiveSupport::TestCase
       # регрессия рестарт-лупа: файл класса блока обязан безопасно
       # загружаться без системы блоков (eager-загрузка production грузит
       # его независимо от версии additionals)
-      assert_nothing_raised(NameError) do
+      assert_nothing_raised do
         load File.expand_path('../../../lib/dashboard_blocks/web_window_block.rb', __FILE__)
       end
     end
