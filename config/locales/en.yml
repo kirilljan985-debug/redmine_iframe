@@ -2,3 +2,5 @@ en:
   label_web_window: 'Web page (window)'
   label_web_window_height: 'Window height (px)'
   label_web_window_no_url: 'URL is not set yet: open the block settings and enter the page address'
+  label_web_window_url_info: 'page address, http/https only'
+  label_web_window_height_info: '100–3000, default 485'

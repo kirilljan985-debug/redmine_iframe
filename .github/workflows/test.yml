@@ -75,9 +75,15 @@ jobs:
 
   # Блок дашборда проверяется только с additionals; свежий additionals
   # работает только на MySQL/PostgreSQL, поэтому здесь PostgreSQL-сервис.
+  # Матрица по версиям additionals: main (4.7+ класс-система) и недавние
+  # релизы 4.6.0/4.5.0 (легаси-патч block_definitions).
   additionals_block:
-    name: Redmine 7.0-stable + additionals (блок дашборда)
+    name: Redmine 7.0-stable + additionals ${{ matrix.additionals_ref }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        additionals_ref: ['main', '4.6.0', '4.5.0']
     services:
       postgres:
         image: postgres:16
@@ -104,8 +110,8 @@ jobs:
         with:
           path: plugins/redmine_web_window
 
-      - name: Install additionals
-        run: git clone --depth 1 https://github.com/alphanodes/additionals plugins/additionals
+      - name: Install additionals ${{ matrix.additionals_ref }}
+        run: git clone --depth 1 --branch ${{ matrix.additionals_ref }} https://github.com/alphanodes/additionals plugins/additionals
 
       - name: Setup Ruby 3.3
         uses: ruby/setup-ruby@v1

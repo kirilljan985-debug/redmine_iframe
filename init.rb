@@ -14,20 +14,35 @@
 #   {{web_window(http://192.168.1.50:8000, height=600)}}
 
 # Блок дашбордов: подключаем только при установленном additionals
-# (загружается раньше нас по алфавиту, поэтому installed? здесь уже видит его)
-# и только если его система блоков реально доступна в этой версии.
+# (загружается раньше нас по алфавиту, поэтому installed? здесь уже видит его),
+# по механизму, который есть в данной версии:
+# - additionals 4.7+ — классовая система (DashboardBlocks::Base + Loader.extends);
+# - additionals 4.0–4.6 — легаси-патч DashboardContent#block_definitions.
 # Любая несовместимость деградирует в «только макрос», а не роняет Redmine
 # при старте.
-if defined?(RedminePluginKit::Loader) &&
-   defined?(DashboardBlocks::Base) &&
-   defined?(DashboardContent) &&
-   Redmine::Plugin.installed?(:additionals)
-  begin
-    loader = RedminePluginKit::Loader.new plugin_id: 'redmine_web_window'
-    loader.extends %w[dashboard_blocks]
-  rescue StandardError => e
-    msg = "web_window: блок дашбордов не подключён, работает только макрос (#{e.class}: #{e.message})"
-    Rails.logger ? Rails.logger.warn(msg) : warn(msg)
+if Redmine::Plugin.installed?(:additionals)
+  if defined?(RedminePluginKit::Loader) && defined?(DashboardBlocks::Base)
+    begin
+      loader = RedminePluginKit::Loader.new plugin_id: 'redmine_web_window'
+      loader.extends %w[dashboard_blocks]
+    rescue StandardError => e
+      msg = "web_window: блок дашбордов не подключён, работает только макрос (#{e.class}: #{e.message})"
+      Rails.logger ? Rails.logger.warn(msg) : warn(msg)
+    end
+  else
+    require_relative 'lib/redmine_web_window/legacy_dashboard_block_patch'
+    Rails.application.config.after_initialize do
+      begin
+        if defined?(DashboardContent)
+          DashboardContent.include RedmineWebWindow::Patches::DashboardContentPatch
+        else
+          warn 'web_window: DashboardContent не найден, работает только макрос'
+        end
+      rescue StandardError => e
+        msg = "web_window: легаси-блок дашбордов не подключён, работает только макрос (#{e.class}: #{e.message})"
+        Rails.logger ? Rails.logger.warn(msg) : warn(msg)
+      end
+    end
   end
 end
 

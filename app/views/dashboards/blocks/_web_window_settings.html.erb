@@ -1,0 +1,16 @@
+<div class="box tabular settings">
+  <p>
+    <%= label_tag "settings_#{block}_title", l(:field_title) %>
+    <%= text_field_tag "settings[#{block}][title]", settings[:title], size: 60 %>
+  </p>
+  <p>
+    <%= label_tag "settings_#{block}_url", l(:field_url) %>
+    <%= text_field_tag "settings[#{block}][url]", settings[:url], size: 60 %>
+    <em class="info"><%= l(:label_web_window_url_info) %></em>
+  </p>
+  <p>
+    <%= label_tag "settings_#{block}_height", l(:label_web_window_height) %>
+    <%= number_field_tag "settings[#{block}][height]", settings[:height].presence || 485, min: 100, max: 3000 %>
+    <em class="info"><%= l(:label_web_window_height_info) %></em>
+  </p>
+</div>
