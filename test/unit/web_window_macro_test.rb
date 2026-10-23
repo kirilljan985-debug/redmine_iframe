@@ -29,9 +29,9 @@ class WebWindowMacroTest < ActiveSupport::TestCase
     assert_include 'height:600px', out
   end
 
-  test 'clamps height into allowed range' do
+  test 'resets out-of-range height to default' do
     assert_include 'height:485px', exec_macro('http://example.com, height=10')
-    assert_include 'height:3000px', exec_macro('http://example.com, height=9999')
+    assert_include 'height:485px', exec_macro('http://example.com, height=9999')
   end
 
   test 'rejects non http(s) urls' do
