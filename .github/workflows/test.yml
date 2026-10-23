@@ -65,3 +65,9 @@ jobs:
             tail -n 30 log/test.log 2>/dev/null || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          # самые информативные строки — в аннотации прогона (читаются через API)
+          {
+            tail -n 200 ci_output.txt 2>/dev/null || true
+          } | grep -aE "^[0-9]+\) |Failure:|Error:|rake aborted|[0-9]+ runs, |SyntaxError|LoadError|NameError|NoMethodError|cannot load" | head -10 | while IFS= read -r line; do
+            echo "::error::${line:0:300}"
+          done
