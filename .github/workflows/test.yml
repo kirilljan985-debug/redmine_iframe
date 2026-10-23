@@ -48,8 +48,20 @@ jobs:
         working-directory: plugins/redmine_web_window
 
       - name: Plugin tests
-        run: bundle exec rake redmine:plugins:test NAME=redmine_web_window RAILS_ENV=test
+        run: |
+          set -o pipefail
+          bundle exec rake redmine:plugins:test NAME=redmine_web_window RAILS_ENV=test 2>&1 | tee ci_output.txt
 
       - name: Report failure details
         if: failure()
-        run: tail -n 80 log/test.log || true
+        run: |
+          {
+            echo "### Plugin tests — хвост вывода"
+            echo '```'
+            tail -n 80 ci_output.txt 2>/dev/null || true
+            echo '```'
+            echo "### log/test.log — хвост"
+            echo '```'
+            tail -n 30 log/test.log 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
