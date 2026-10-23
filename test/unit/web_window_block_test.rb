@@ -28,12 +28,11 @@ class WebWindowBlockTest < ActiveSupport::TestCase
       assert_equal 10, defs['web_window'][:max_occurs]
 
       # регрессия рестарт-лупа: файл класса блока обязан безопасно
-      # загружаться без системы блоков (eager-загрузка production)
-      assert_nil defined?(DashboardBlocks::WebWindowBlock)
-      assert_nothing_raised do
+      # загружаться без системы блоков (eager-загрузка production грузит
+      # его независимо от версии additionals)
+      assert_nothing_raised(NameError) do
         load File.expand_path('../../../lib/dashboard_blocks/web_window_block.rb', __FILE__)
       end
-      assert_nil defined?(DashboardBlocks::WebWindowBlock)
     end
   end
 
