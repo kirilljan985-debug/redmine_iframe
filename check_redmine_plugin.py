@@ -24,9 +24,10 @@ if (BASE / 'init.rb').is_file():
 else:
     PLUGIN = BASE / 'redmine_web_window'
 
-# Разрешены LAN-примеры, плейсхолдеры и ссылка на собственный репозиторий.
+# Разрешены LAN-примеры, плейсхолдеры, тестовый example.com и ссылка
+# на собственный репозиторий.
 ALLOWED_URL_PREFIXES = ('http://192.168.', 'http://localhost', 'http://<',
-                        'http://адрес',
+                        'http://адрес', 'http://example.com',
                         'https://github.com/kirilljan985-debug/')
 
 EXPECTED_FILES = (
@@ -71,6 +72,8 @@ class TestRedminePlugin(unittest.TestCase):
         for path in PLUGIN.rglob('*'):
             if not path.is_file():
                 continue
+            if '.git' in path.parts:
+                continue  # служебные файлы git-репозитория (бинарные)
             text = path.read_text(encoding='utf-8')
             for url in re.findall(r'https?://[^\s"\'<>)`]+', text):
                 self.assertTrue(

@@ -1,0 +1,55 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Redmine ${{ matrix.redmine_branch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        redmine_branch: ['7.0-stable', 'master']
+    steps:
+      - name: Clone Redmine ${{ matrix.redmine_branch }}
+        uses: actions/checkout@v4
+        with:
+          repository: redmine/redmine
+          ref: ${{ matrix.redmine_branch }}
+
+      - name: Install plugin as plugins/redmine_web_window
+        uses: actions/checkout@v4
+        with:
+          path: plugins/redmine_web_window
+
+      - name: Setup Ruby 3.3
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure sqlite test database
+        run: |
+          cat > config/database.yml <<'EOF'
+          test:
+            adapter: sqlite3
+            database: db/test.sqlite3
+          EOF
+
+      - name: Bundle install
+        run: bundle install --jobs 4 --without development
+
+      - name: Migrate test database
+        run: bundle exec rake db:create db:migrate RAILS_ENV=test
+
+      - name: Static checks (python)
+        run: python3 check_redmine_plugin.py
+        working-directory: plugins/redmine_web_window
+
+      - name: Plugin tests
+        run: bundle exec rake redmine:plugins:test NAME=redmine_web_window RAILS_ENV=test
+
+      - name: Report failure details
+        if: failure()
+        run: tail -n 80 log/test.log || true
