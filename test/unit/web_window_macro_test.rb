@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Тестовое окружение Redmine (тестовые ассерты, fixture-пути).
-require File.expand_path('../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __FILE__)
 
 # Тесты макроса {{web_window}}.
 #
