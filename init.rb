@@ -20,8 +20,24 @@
 # - additionals 4.0–4.6 — легаси-патч DashboardContent#block_definitions.
 # Любая несовместимость деградирует в «только макрос», а не роняет Redmine
 # при старте.
+modern_blocks = Redmine::Plugin.installed?(:additionals) &&
+                defined?(RedminePluginKit::Loader) &&
+                defined?(DashboardBlocks::Base)
+
+# Каталог класса блока находится в автозагрузке плагина, а eager-загрузка
+# production грузит его независимо от окружения и требует от Zeitwerk
+# определения константы. Без современной системы блоков класс не создаётся,
+# поэтому каталог исключается из автозагрузки.
+if !modern_blocks && defined?(Rails.autoloaders) && Rails.autoloaders.respond_to?(:main)
+  begin
+    Rails.autoloaders.main.ignore(File.expand_path('lib/dashboard_blocks', __dir__))
+  rescue StandardError
+    # необязательная оптимизация, не влияет на безопасность старта
+  end
+end
+
 if Redmine::Plugin.installed?(:additionals)
-  if defined?(RedminePluginKit::Loader) && defined?(DashboardBlocks::Base)
+  if modern_blocks
     begin
       loader = RedminePluginKit::Loader.new plugin_id: 'redmine_web_window'
       loader.extends %w[dashboard_blocks]
@@ -30,17 +46,6 @@ if Redmine::Plugin.installed?(:additionals)
       Rails.logger ? Rails.logger.warn(msg) : warn(msg)
     end
   else
-    # легаси: каталог класса блока исключаем из автозагрузки (в 4.0–4.6
-    # системы блоков нет, а eager-загрузка production честно грузит файлы
-    # плагина; класс сам защищён return-выходом, это убирает лишние
-    # автозагрузочные записи)
-    begin
-      if defined?(Rails.autoloaders) && Rails.autoloaders.respond_to?(:main)
-        Rails.autoloaders.main.ignore(File.expand_path('lib/dashboard_blocks', __dir__))
-      end
-    rescue StandardError
-      # необязательная оптимизация, не влияет на безопасность старта
-    end
     require_relative 'lib/redmine_web_window/patches/dashboard_content_patch'
     Rails.application.config.after_initialize do
       begin
