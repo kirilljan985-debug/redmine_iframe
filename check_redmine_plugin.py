@@ -35,7 +35,7 @@ EXPECTED_FILES = (
     'init.rb',
     'README.md',
     'lib/dashboard_blocks/web_window_block.rb',
-    'lib/redmine_web_window/legacy_dashboard_block_patch.rb',
+    'lib/redmine_web_window/patches/dashboard_content_patch.rb',
     'app/views/dashboards/blocks/_web_window.html.erb',
     'app/views/dashboards/blocks/_web_window_settings.html.erb',
     'config/locales/en.yml',
@@ -73,7 +73,12 @@ class TestRedminePlugin(unittest.TestCase):
         self.assertIn("loader.extends %w[dashboard_blocks]", init)
         # легаси-ветка для additionals 4.0–4.6
         self.assertIn('DashboardContent.include RedmineWebWindow::Patches::DashboardContentPatch', init)
-        legacy = self.read('lib/redmine_web_window/legacy_dashboard_block_patch.rb')
+        # путь файла обязан совпадать с именем класса (Zeitwerk, eager-загрузка)
+        self.assertIn("require_relative 'lib/redmine_web_window/patches/dashboard_content_patch'", init)
+        legacy = self.read('lib/redmine_web_window/patches/dashboard_content_patch.rb')
+        self.assertIn('module RedmineWebWindow', legacy)
+        self.assertIn('module Patches', legacy)
+        self.assertIn('module DashboardContentPatch', legacy)
         self.assertIn("blocks['web_window']", legacy)
         self.assertIn("partial: 'dashboards/blocks/web_window'", legacy)
         self.assertIn('max_occurs: 10', legacy)

@@ -54,6 +54,9 @@ jobs:
           set -o pipefail
           bundle exec rake redmine:plugins:test NAME=redmine_web_window RAILS_ENV=test 2>&1 | tee ci_output.txt
 
+      - name: Eager-load smoke check (как production)
+        run: RAILS_ENV=test bundle exec rails runner 'Rails.application.eager_load!; puts :EAGER_OK'
+
       - name: Report failure details
         if: failure()
         run: |
@@ -149,6 +152,9 @@ jobs:
         run: |
           set -o pipefail
           bundle exec rake redmine:plugins:test NAME=redmine_web_window RAILS_ENV=test 2>&1 | tee ci_output.txt
+
+      - name: Eager-load smoke check (как production)
+        run: RAILS_ENV=test bundle exec rails runner 'Rails.application.eager_load!; puts :EAGER_OK'
 
       - name: Report failure details
         if: failure()

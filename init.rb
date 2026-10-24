@@ -41,7 +41,7 @@ if Redmine::Plugin.installed?(:additionals)
     rescue StandardError
       # необязательная оптимизация, не влияет на безопасность старта
     end
-    require_relative 'lib/redmine_web_window/legacy_dashboard_block_patch'
+    require_relative 'lib/redmine_web_window/patches/dashboard_content_patch'
     Rails.application.config.after_initialize do
       begin
         if defined?(DashboardContent)
