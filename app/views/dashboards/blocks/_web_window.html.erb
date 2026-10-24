@@ -1,6 +1,7 @@
 <% url = settings[:url].to_s.strip %>
 <% height = settings[:height].present? ? settings[:height].to_i : 485 %>
 <% height = 485 unless height.between?(100, 3000) %>
+<% legacy_dashboard_system = !defined?(DashboardBlocks::Base) %>
 <% if settings[:title].present? %>
   <h3><%= settings[:title] %></h3>
 <% end %>
@@ -11,4 +12,20 @@
           style="width:100%;height:<%= height %>px;border:1px solid #c0c0c0;border-radius:3px;background:#fff"></iframe>
 <% else %>
   <p class="hint"><%= l(:label_web_window_no_url) %></p>
+<% end %>
+<% if legacy_dashboard_system && defined?(dashboard) && dashboard &&
+      dashboard.respond_to?(:editable?) && dashboard.editable? && !dashboard.locked? %>
+  <%# Легаси-дашборды (additionals 4.0-4.6): шестерёнка блока переключает
+      скрытый div "#{block}-settings" — партиал обязан нарисовать его сам
+      (как это делает блок «Текст» в additionals). В 4.7+ форму настроек
+      генерирует сама система блоков. %>
+  <div class="hidden" id="<%= block %>-settings">
+    <%= remote_form_tag _update_layout_setting_dashboard_path(@project, @dashboard) do %>
+      <%= render 'dashboards/blocks/web_window_settings', block: block, settings: settings %>
+      <p>
+        <%= submit_tag l(:button_save) %>
+        <%= link_to_function l(:button_cancel), "$('##{block}-settings').toggle()" %>
+      </p>
+    <% end %>
+  </div>
 <% end %>

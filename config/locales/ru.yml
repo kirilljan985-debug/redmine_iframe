@@ -1,6 +1,6 @@
 ru:
   label_web_window: 'Веб-страница (окно)'
   label_web_window_height: 'Высота окна (px)'
-  label_web_window_no_url: 'Ссылка ещё не задана: откройте настройки блока и впишите адрес страницы'
+  label_web_window_no_url: 'Ссылка ещё не задана: нажмите шестерёнку (Настройки) у блока и впишите адрес страницы'
   label_web_window_url_info: 'адрес страницы, только http/https'
   label_web_window_height_info: '100–3000, по умолчанию 485'

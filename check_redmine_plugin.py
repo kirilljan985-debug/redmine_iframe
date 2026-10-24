@@ -82,6 +82,11 @@ class TestRedminePlugin(unittest.TestCase):
         self.assertIn("blocks['web_window']", legacy)
         self.assertIn("partial: 'dashboards/blocks/web_window'", legacy)
         self.assertIn('max_occurs: 10', legacy)
+        # легаси-UI: шестерёнка переключает скрытую форму в самом партиале
+        partial = self.read('app/views/dashboards/blocks/_web_window.html.erb')
+        self.assertIn("id=\"<%= block %>-settings\"", partial)
+        self.assertIn('remote_form_tag', partial)
+        self.assertIn('web_window_settings', partial)
         block = self.read('lib/dashboard_blocks/web_window_block.rb')
         self.assertIn("block_id 'web_window'", block)
         self.assertIn('setting :url', block)
